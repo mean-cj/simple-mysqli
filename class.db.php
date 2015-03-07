@@ -1,4 +1,6 @@
 <?php
+namespace Helpers;
+
 /*------------------------------------------------------------------------------
 ** File:        class.db.php
 ** Class:       Simply MySQLi
