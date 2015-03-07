@@ -86,13 +86,13 @@ class DB
     }
     
     
-    public function __construct()
+    public function __construct($db_host,$db_user,$db_pass,$db_name)
     {
         mb_internal_encoding( 'UTF-8' );
         mb_regex_encoding( 'UTF-8' );
         mysqli_report( MYSQLI_REPORT_STRICT );
         try {
-            $this->link = new mysqli( DB_HOST, DB_USER, DB_PASS, DB_NAME );
+            $this->link = new mysqli( $db_host, $db_user, $db_pass, $db_name );
             $this->link->set_charset( "utf8" );
         } catch ( Exception $e ) {
             die( 'Unable to connect to database' );
@@ -374,10 +374,10 @@ class DB
      * @access public
      * @param string
      * @param bool $object (true returns results as objects)
-     * @return array
+     * @return object
      *
      */
-    public function get_row( $query, $object = false )
+    public function get_row( $query, $object = true )
     {
         self::$counter++;
         $row = $this->link->query( $query );
@@ -407,10 +407,10 @@ class DB
      * @access public
      * @param string
      * @param bool $object (true returns object)
-     * @return array
+     * @return object
      *
      */
-    public function get_results( $query, $object = false )
+    public function get_results( $query, $object = true )
     {
         self::$counter++;
         //Overwrite the $row var to null
