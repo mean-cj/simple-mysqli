@@ -1,14 +1,14 @@
 <?php
 namespace Helpers;
-
+use mysqli;
 /*------------------------------------------------------------------------------
 ** File:        class.db.php
 ** Class:       Simply MySQLi
-** Description: PHP MySQLi wrapper class to handle common database queries and operations 
+** Description: PHP MySQLi wrapper class to handle common database queries and operations
 ** Version:     2.1.4
 ** Updated:     11-Sep-2014
 ** Author:      Bennett Stone
-** Homepage:    www.phpdevtips.com 
+** Homepage:    www.phpdevtips.com
 **------------------------------------------------------------------------------
 ** COPYRIGHT (c) 2012 - 2014 BENNETT STONE
 **
@@ -19,13 +19,13 @@ namespace Helpers;
 **
 ** http://www.opensource.org/licenses/gpl-license.php
 **
-** This program is distributed in the hope that it will be useful, but WITHOUT 
-** ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
-** FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+** This program is distributed in the hope that it will be useful, but WITHOUT
+** ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+** FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 **------------------------------------------------------------------------------ */
 /*******************************
  Example initialization:
- 
+
  define( 'DB_HOST', 'localhost' ); // set database host
  define( 'DB_USER', 'root' ); // set database user
  define( 'DB_PASS', 'root' ); // set database password
@@ -35,14 +35,14 @@ namespace Helpers;
  require_once( 'class.db.php' );
 
  //Initiate the class
- $database = new DB();
+ $database = new MysqliDB();
 
  //OR...
- $database = DB::getInstance();
- 
+ $database = MysqliDB::getInstance();
+
  NOTE:
  All examples provided below assume that this class has been initiated
- Examples below assume the class has been iniated using $database = DB::getInstance();
+ Examples below assume the class has been iniated using $database = MysqliDB::getInstance();
 ********************************/
 class MysqliDB
 {
@@ -50,7 +50,7 @@ class MysqliDB
     public $filter;
     static $inst = null;
     public static $counter = 0;
-    
+
     /**
      * Allow the class to send admins a message alerting them to errors
      * on production sites
@@ -74,7 +74,7 @@ class MysqliDB
             $headers .= 'To: Admin <'.SEND_ERRORS_TO.'>' . "\r\n";
             $headers .= 'From: Yoursite <system@'.$_SERVER['SERVER_NAME'].'.com>' . "\r\n";
 
-            mail( SEND_ERRORS_TO, 'Database Error', $message, $headers );   
+            mail( SEND_ERRORS_TO, 'Database Error', $message, $headers );
         }
         else
         {
@@ -83,11 +83,11 @@ class MysqliDB
 
         if( !defined( 'DISPLAY_DEBUG' ) || ( defined( 'DISPLAY_DEBUG' ) && DISPLAY_DEBUG ) )
         {
-            echo $message;   
+            echo $message;
         }
     }
-    
-    
+
+
     public function __construct($db_host,$db_user,$db_pass,$db_name)
     {
         mb_internal_encoding( 'UTF-8' );
@@ -115,7 +115,7 @@ class MysqliDB
      *
      * Example usage:
      * $user_name = $database->filter( $_POST['user_name'] );
-     * 
+     *
      * Or to filter an entire array:
      * $data = array( 'name' => $_POST['name'], 'email' => 'email@address.com' );
      * $data = $database->filter( $data );
@@ -138,8 +138,8 @@ class MysqliDB
          }
          return $data;
      }
-     
-     
+
+
      /**
       * Extra function to filter when only mysqli_real_escape_string is needed
       * @access public
@@ -159,8 +159,8 @@ class MysqliDB
          }
          return $data;
      }
-    
-    
+
+
     /**
      * Normalize sanitized data for display (reverse $database->filter cleaning)
      *
@@ -179,8 +179,8 @@ class MysqliDB
          $data = urldecode( $data );
          return $data;
      }
-    
-    
+
+
     /**
      * Determine if common non-encapsulated fields are being used
      *
@@ -221,8 +221,8 @@ class MysqliDB
             }
         }
     }
-    
-    
+
+
     /**
      * Perform queries
      * All following functions run through this function
@@ -240,15 +240,15 @@ class MysqliDB
         if( $this->link->error )
         {
             $this->log_db_errors( $this->link->error, $query );
-            return false; 
+            return false;
         }
         else
         {
             return true;
         }
     }
-    
-    
+
+
     /**
      * Determine if database table exists
      * Example usage:
@@ -282,8 +282,8 @@ class MysqliDB
              return false;
          }
      }
-    
-    
+
+
     /**
      * Count number of rows found matching a specific query
      *
@@ -309,14 +309,14 @@ class MysqliDB
             return $num_rows->num_rows;
         }
     }
-    
-    
+
+
     /**
      * Run check to see if value exists, returns true or false
      *
      * Example Usage:
      * $check_user = array(
-     *    'user_email' => 'someuser@gmail.com', 
+     *    'user_email' => 'someuser@gmail.com',
      *    'user_id' => 48
      * );
      * $exists = $database->exists( 'your_table', 'user_id', $check_user );
@@ -343,11 +343,11 @@ class MysqliDB
                 //Check for frequently used mysql commands and prevent encapsulation of them
                 if( $this->db_common( $value ) )
                 {
-                    $check[] = "$field = $value";   
+                    $check[] = "$field = $value";
                 }
                 else
                 {
-                    $check[] = "$field = '$value'";   
+                    $check[] = "$field = '$value'";
                 }
             }
 
@@ -365,8 +365,8 @@ class MysqliDB
             return true;
         }
     }
-    
-    
+
+
     /**
      * Return specific row based on db query
      *
@@ -391,11 +391,11 @@ class MysqliDB
         else
         {
             $r = ( !$object ) ? $row->fetch_row() : $row->fetch_object();
-            return $r;   
+            return $r;
         }
     }
-    
-    
+
+
     /**
      * Perform query to retrieve array of associated results
      *
@@ -417,7 +417,7 @@ class MysqliDB
         self::$counter++;
         //Overwrite the $row var to null
         $row = null;
-        
+
         $results = $this->link->query( $query );
         if( $this->link->error )
         {
@@ -431,18 +431,18 @@ class MysqliDB
             {
                 $row[] = $r;
             }
-            return $row;   
+            return $row;
         }
     }
-    
-    
+
+
     /**
      * Insert data into database table
      *
      * Example usage:
      * $user_data = array(
-     *      'name' => 'Bennett', 
-     *      'email' => 'email@address.com', 
+     *      'name' => 'Bennett',
+     *      'email' => 'email@address.com',
      *      'active' => 1
      * );
      * $database->insert( 'users_table', $user_data );
@@ -461,7 +461,7 @@ class MysqliDB
         {
             return false;
         }
-        
+
         $sql = "INSERT INTO ". $table;
         $fields = array();
         $values = array();
@@ -472,14 +472,14 @@ class MysqliDB
         }
         $fields = ' (' . implode(', ', $fields) . ')';
         $values = '('. implode(', ', $values) .')';
-        
+
         $sql .= $fields .' VALUES '. $values;
 
         $query = $this->link->query( $sql );
-        
+
         if( $this->link->error )
         {
-            //return false; 
+            //return false;
             $this->log_db_errors( $this->link->error, $sql );
             return false;
         }
@@ -488,8 +488,8 @@ class MysqliDB
             return true;
         }
     }
-    
-    
+
+
     /**
     * Insert data KNOWN TO BE SECURE into database table
     * Ensure that this function is only used with safe data
@@ -510,7 +510,7 @@ class MysqliDB
         {
             return false;
         }
-        
+
         $sql = "INSERT INTO ". $table;
         $fields = array();
         $values = array();
@@ -518,14 +518,14 @@ class MysqliDB
         {
             $fields[] = $this->filter( $field );
             //Check for frequently used mysql commands and prevent encapsulation of them
-            $values[] = $this->link->escape_string($value); 
+            $values[] = $this->link->escape_string($value);
         }
         $fields = ' (' . implode(', ', $fields) . ')';
         $values = '('. implode(', ', $values) .')';
-        
+
         $sql .= $fields .' VALUES '. $values;
         $query = $this->link->query( $sql );
-        
+
         if( $this->link->error )
         {
             $this->log_db_errors( $this->link->error, $sql );
@@ -536,27 +536,27 @@ class MysqliDB
             return true;
         }
     }
-    
-    
+
+
     /**
      * Insert multiple records in a single query into a database table
      *
      * Example usage:
      * $fields = array(
-     *      'name', 
-     *      'email', 
+     *      'name',
+     *      'email',
      *      'active'
      *  );
      *  $records = array(
      *     array(
      *          'Bennett', 'bennett@email.com', 1
-     *      ), 
+     *      ),
      *      array(
      *          'Lori', 'lori@email.com', 0
-     *      ), 
+     *      ),
      *      array(
      *          'Nick', 'nick@nick.com', 1, 'This will not be added'
-     *      ), 
+     *      ),
      *      array(
      *          'Meghan', 'meghan@email.com', 1
      *      )
@@ -624,8 +624,8 @@ class MysqliDB
             return $added;
         }
     }
-    
-    
+
+
     /**
      * Update data in database table
      *
@@ -655,11 +655,11 @@ class MysqliDB
         $sql = "UPDATE ". $table ." SET ";
         foreach( $variables as $field => $value )
         {
-            
+
             $updates[] = "`$field` = '$value'";
         }
         $sql .= implode(', ', $updates);
-        
+
         //Add the $where clauses as needed
         if( !is_array( $where ) )
         {
@@ -670,9 +670,9 @@ class MysqliDB
                 list($field,$opatator,$value ) = $condition;
                 $sql .= "{$field} {$opatator} {'$value'} ";
             }
- 
+
         }
-        
+
         if( !empty( $limit ) )
         {
             $sql .= ' LIMIT '. $limit;
@@ -690,8 +690,8 @@ class MysqliDB
             return true;
         }
     }
-    
-    
+
+
     /**
      * Delete data from table
      *
@@ -714,7 +714,7 @@ class MysqliDB
         {
             return false;
         }
-        
+
         $sql = "DELETE FROM ". $table;
         foreach( $where as $field => $value )
         {
@@ -722,12 +722,12 @@ class MysqliDB
             $clause[] = "$field = '$value'";
         }
         $sql .= " WHERE ". implode(' AND ', $clause);
-        
+
         if( !empty( $limit ) )
         {
             $sql .= " LIMIT ". $limit;
         }
-            
+
         $query = $this->link->query( $sql );
 
         if( $this->link->error )
@@ -741,8 +741,8 @@ class MysqliDB
             return true;
         }
     }
-    
-    
+
+
     /**
      * Get last auto-incrementing ID associated with an insertion
      *
@@ -760,11 +760,11 @@ class MysqliDB
         self::$counter++;
         return $this->link->insert_id;
     }
-    
-    
+
+
     /**
      * Return the number of rows affected by a given query
-     * 
+     *
      * Example usage:
      * $database->insert( 'users_table', $user );
      * $database->affected();
@@ -777,8 +777,8 @@ class MysqliDB
     {
         return $this->link->affected_rows;
     }
-    
-    
+
+
     /**
      * Get number of fields
      *
@@ -796,8 +796,8 @@ class MysqliDB
         $fields = $query->field_count;
         return $fields;
     }
-    
-    
+
+
     /**
      * Get field names associated with a table
      *
@@ -818,8 +818,8 @@ class MysqliDB
         $listed_fields = $query->fetch_fields();
         return $listed_fields;
     }
-    
-    
+
+
     /**
      * Truncate entire tables
      *
@@ -850,8 +850,8 @@ class MysqliDB
             return $truncated;
         }
     }
-    
-    
+
+
     /**
      * Output results of queries
      *
@@ -883,8 +883,8 @@ class MysqliDB
             return $out;
         }
     }
-    
-    
+
+
     /**
      * Output the total number of queries
      * Generally designed to be used at the bottom of a page after
@@ -901,13 +901,13 @@ class MysqliDB
     {
         return self::$counter;
     }
-    
-    
+
+
     /**
      * Singleton function
      *
      * Example usage:
-     * $database = DB::getInstance();
+     * $database = MysqliDB::getInstance();
      *
      * @access private
      * @return self
@@ -920,8 +920,8 @@ class MysqliDB
         }
         return self::$inst;
     }
-    
-    
+
+
     /**
      * Disconnect from db server
      * Called automatically from __destruct function
