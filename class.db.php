@@ -642,7 +642,7 @@ class MysqliDB
      * @return bool
      *
      */
-    public function update( $table, $variables = array(), $where = array(), $limit = '' )
+    public function update( $table, $variables = array(), $where , $limit = '' )
     {
         self::$counter++;
         //Make sure the required data is passed before continuing
@@ -656,22 +656,14 @@ class MysqliDB
         foreach( $variables as $field => $value )
         {
 
-            $updates[] = "`$field` = '$value'";
+            $updates[] = "`$field` = '".$this->link->escape_string($value)."'";
         }
         $sql .= implode(', ', $updates);
 
         //Add the $where clauses as needed
-        if( !is_array( $where ) )
-        {
-            $sql .= 'WHERE';
-            foreach( $where as $condition )
-            {
-                throw new exception("Error Oparation: ".print_r($condition,true));
-                list($field,$opatator,$value ) = $condition;
-                $sql .= "{$field} {$opatator} {'$value'} ";
-            }
 
-        }
+         $sql .= "WHERE {$where}";
+
 
         if( !empty( $limit ) )
         {
