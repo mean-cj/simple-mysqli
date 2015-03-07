@@ -42,7 +42,7 @@
  All examples provided below assume that this class has been initiated
  Examples below assume the class has been iniated using $database = DB::getInstance();
 ********************************/
-class DB
+class MysqliDB
 {
     private $link = null;
     public $filter;
@@ -466,7 +466,7 @@ class DB
         foreach( $variables as $field => $value )
         {
             $fields[] = $field;
-            $values[] = "'".$value."'";
+            $values[] = "'".$this->link->escape_string($value)."'";
         }
         $fields = ' (' . implode(', ', $fields) . ')';
         $values = '('. implode(', ', $values) .')';
@@ -516,7 +516,7 @@ class DB
         {
             $fields[] = $this->filter( $field );
             //Check for frequently used mysql commands and prevent encapsulation of them
-            $values[] = $value; 
+            $values[] = $this->link->escape_string($value); 
         }
         $fields = ' (' . implode(', ', $fields) . ')';
         $values = '('. implode(', ', $values) .')';
@@ -659,15 +659,16 @@ class DB
         $sql .= implode(', ', $updates);
         
         //Add the $where clauses as needed
-        if( !empty( $where ) )
+        if( !is_array( $where ) )
         {
-            foreach( $where as $field => $value )
+            $sql .= 'WHERE';
+            foreach( $where as $condition )
             {
-                $value = $value;
-
-                $clause[] = "$field = '$value'";
+                throw new exception("Error Oparation: ".print_r($condition,true));
+                list($field,$opatator,$value ) = $condition;
+                $sql .= "{$field} {$opatator} {'$value'} ";
             }
-            $sql .= ' WHERE '. implode(' AND ', $clause);   
+ 
         }
         
         if( !empty( $limit ) )
